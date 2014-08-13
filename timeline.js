@@ -387,6 +387,30 @@ links.Timeline.prototype.setOptions = function(options) {
 };
 
 /**
+ * Format start and end of data from second to Date
+ * @param {Date} data  Input data
+ */
+links.Timeline.prototype.formatJsonData = function(options, data) {
+	if (!(data instanceof Array))
+		return data;
+	this.setOptions(options);
+	for (var i = 0; i < data.length; i++) {
+		data[i].start = dateToString(options.min.valueOf() + data[i].start * 1000);
+		data[i].end = dateToString(options.min.valueOf() + data[i].end * 1000);
+	}
+	
+	return data;
+}
+
+/**
+ * Get second from date value
+ */
+links.Timeline.prototype.getSecondFromDate = function(date) {
+	return (date.valueOf() - this.options.min.valueOf()) / 1000;
+}
+
+
+/**
  * Add new type of items
  * @param {String} typeName  Name of new type
  * @param {links.Timeline.Item} typeFactory Constructor of items
@@ -1141,6 +1165,13 @@ links.Timeline.prototype.repaintAxis = function() {
     // put axis online
     dom.content.insertBefore(axis.frame, dom.content.firstChild);
 
+	
+	// Adding
+	if (options.scale == links.Timeline.StepDate.SCALE.SECOND) {
+	
+	}
+	
+	
     return needsReflow;
 };
 
@@ -6123,7 +6154,7 @@ links.Timeline.StepDate.prototype.getLabelMinor = function(options, date) {
 
     switch (this.scale) {
         case links.Timeline.StepDate.SCALE.MILLISECOND:  return String(date.getMilliseconds())+'ms';
-        case links.Timeline.StepDate.SCALE.SECOND:       return String(date.getSeconds())+'s';
+        case links.Timeline.StepDate.SCALE.SECOND:       return (date.valueOf() - options.min.valueOf())/1000+'s ';
         case links.Timeline.StepDate.SCALE.MINUTE:
             return this.addZeros(date.getHours(), 2) + ":" + this.addZeros(date.getMinutes(), 2);
         case links.Timeline.StepDate.SCALE.HOUR:

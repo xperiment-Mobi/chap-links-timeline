@@ -18,85 +18,35 @@
         var timeline = null;
         var jsonData = 
         [{
-            "start": "Date(2013, 6, 30, 18, 48, 33, 774)",
-            "end": "Date(2013, 6, 30, 22, 48, 33, 774)",
+            "start": 10,
+            "end": 20,
             "content": "",
             "group": "group4",
             "type": "range"
         }, {
-            "start": "Date(2013, 6, 30, 23, 48, 33, 774)",
-            "end": "Date(2013, 6, 31, 1, 48, 33, 774)",
+            "start": 30,
+            "end": 50,
             "content": "",
             "group": "group1",
             "type": "range"
         }, {
-            "start": "Date(2013, 6, 31, 2, 48, 33, 774)",
-            "end": "Date(2013, 6, 31, 5, 48, 33, 774)",
+            "start": 80,
+            "end": 90,
             "content": "",
             "group": "group2",
             "type": "range"
         }, {
-            "start": "Date(2013, 6, 31, 6, 48, 33, 774)",
-            "end": "Date(2013, 6, 31, 9, 48, 33, 774)",
+            "start": 40,
+            "end": 100,
             "content": "",
             "group": "group2",
             "type": "range"
         }, {
-            "start": "Date(2013, 6, 30, 19, 48, 33, 775)",
-            "end": "Date(2013, 6, 30, 23, 48, 33, 775)",
+            "start": 20,
+            "end": 80,
             "content": "",
             "group": "group3",
             "type": "range"
-        }, {
-            "start": "Date(2013, 6, 31, 4, 48, 33, 775)",
-            "end": "Date(2013, 6, 31, 6, 48, 33, 775)",
-            "content": "",
-            "group": "group3",
-            "type": "range"
-        }, {
-            "start": "Date(2013, 6, 31, 8, 0, 0)",
-            "end": "Date(2013, 6, 31, 10, 0, 0)",
-            "content": "",
-            "group": "group4",
-            "type": "range"
-        }, {
-            "start": "Date(2013, 6, 31, 10, 48, 33, 775)",
-            "end": "Date(2013, 6, 31, 13, 48, 33, 775)",
-            "content": "",
-            "group": "group4",
-            "type": "range"
-        }, {
-            "start": "Date(2013, 6, 31, 14, 48, 33, 775)",
-            "end": "Date(2013, 6, 31, 17, 48, 33, 775)",
-            "content": "",
-            "group": "group4",
-            "type": "range"
-        }, {
-            "start": "Date(2013, 6, 30, 15, 48, 33, 776)",
-            "end": "Date(2013, 6, 30, 20, 48, 33, 776)",
-            "content": "",
-            "group": "group4",
-            "type": "range"
-        }, {
-            "start": "Date(2013, 6, 30, 21, 48, 33, 776)",
-            "end": "Date(2013, 6, 30, 23, 48, 33, 776)",
-            "content": "",
-            "group": "group4",
-            "type": "range"
-        },
-        {
-            "start": "Date(2013, 6, 30, 21, 48, 33, 776)",
-            "end": "Date(2013, 6, 30, 23, 48, 33, 776)",
-            "content": "Deadline 1",
-            "group": "group4",
-            "type": "line"
-        },
-        {
-            "start": "Date(2013, 6, 31, 20, 48, 33, 776)",
-            "end": "Date(2013, 6, 31, 23, 48, 33, 776)",
-            "content": "Deadline 2",
-            "group": "group4",
-            "type": "line"
         }];
 
         var groupText = 
@@ -120,7 +70,7 @@
             var options = {
 
                 //set fixed time which cannot be moved left
-                min: new Date(2013,4,1,1,1,1),
+                min: new Date(2014,7,13,0,0,0),
                 
                 //default width of the chart ( height is auto )
                 width:  "800px",
@@ -159,8 +109,9 @@
                 showNavigation: true,
 
                 groupText: groupText, //pass the group name text
-
-
+				scale:2,
+				step:5,
+				zoomMax:50000,
                 sortableGroup : true
             };
 
@@ -177,7 +128,7 @@
             // }
 
             // Draw our timeline with the created data and options
-            timeline.draw(jsonData, options, true);
+            timeline.draw(timeline.formatJsonData(options, jsonData), options, true);
 
             //confirm on delete
             links.events.addListener(timeline,'delete',function()
@@ -191,8 +142,6 @@
             links.events.addListener(timeline,'change',ItemsUpdated);
         }
 
-
-
         function ItemsUpdated()
         {
             var reverseGroup = {};
@@ -204,8 +153,8 @@
             {
                 data.push(
                 {
-                    start: dateToString(r.start),
-                    end: dateToString(r.end),
+                    start: timeline.getSecondFromDate(r.start),
+                    end: timeline.getSecondFromDate(r.end),
                     content: r.content,
                     group: reverseGroup[r.group], //convert group text back
                     type: r.type
