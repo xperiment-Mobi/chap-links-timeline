@@ -168,18 +168,22 @@ div.timeline-navigation-delete {
 }
 
 div.timeline-navigation-zoom-in {
+    margin-right:5px;
     background: url('img/16/zoomin.png') no-repeat center;
 }
 
 div.timeline-navigation-zoom-out {
+    margin-right:5px;
     background: url('img/16/zoomout.png') no-repeat center;
 }
 
 div.timeline-navigation-move-left {
+    margin-right:5px;
     background: url('img/16/moveleft.png') no-repeat center;
 }
 
 div.timeline-navigation-move-right {
+    margin-right:5px;
     background: url('img/16/moveright.png') no-repeat center;
 }
 

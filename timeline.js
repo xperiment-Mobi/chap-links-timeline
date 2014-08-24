@@ -2243,18 +2243,18 @@ links.Timeline.prototype.repaintNavigation = function () {
             navBar = document.createElement("DIV");
             navBar.style.position = "absolute";
             navBar.className = "timeline-navigation ui-widget ui-state-highlight ui-corner-all";
-            if (options.groupsOnRight) {
-                navBar.style.left = '10px';
-            }
-            else {
-                navBar.style.right = '10px';
-            }
-            if (options.axisOnTop) {
-                navBar.style.bottom = '10px';
-            }
-            else {
-                navBar.style.top = '10px';
-            }
+            //if (options.groupsOnRight) {
+                navBar.style.left = '7px';
+            //}
+            ///else {
+            //    navBar.style.right = '10px';
+            //}
+            //if (options.axisOnTop) {
+            //    navBar.style.bottom = '10px';
+            //}
+            //else {
+                navBar.style.top = '5px';
+            //}
             dom.navBar = navBar;
             frame.appendChild(navBar);
         }
@@ -2327,7 +2327,7 @@ links.Timeline.prototype.repaintNavigation = function () {
                 navBar.zoomInButton.className = "timeline-navigation-zoom-in";
                 navBar.zoomInButton.title = this.options.ZOOM_IN;
                 var ziIconSpan = document.createElement("SPAN");
-                ziIconSpan.className = "ui-icon ui-icon-circle-zoomin";
+                //ziIconSpan.className = "ui-icon ui-icon-circle-zoomin";
                 navBar.zoomInButton.appendChild(ziIconSpan);
                 
                 var onZoomIn = function(event) {
@@ -2345,7 +2345,7 @@ links.Timeline.prototype.repaintNavigation = function () {
                 navBar.zoomOutButton.className = "timeline-navigation-zoom-out";
                 navBar.zoomOutButton.title = this.options.ZOOM_OUT;
                 var zoIconSpan = document.createElement("SPAN");
-                zoIconSpan.className = "ui-icon ui-icon-circle-zoomout";
+                //zoIconSpan.className = "ui-icon ui-icon-circle-zoomout";
                 navBar.zoomOutButton.appendChild(zoIconSpan);
                 
                 var onZoomOut = function(event) {
@@ -2365,7 +2365,7 @@ links.Timeline.prototype.repaintNavigation = function () {
                 navBar.moveLeftButton.className = "timeline-navigation-move-left";
                 navBar.moveLeftButton.title = this.options.MOVE_LEFT;
                 var mlIconSpan = document.createElement("SPAN");
-                mlIconSpan.className = "ui-icon ui-icon-circle-arrow-w";
+                //mlIconSpan.className = "ui-icon ui-icon-circle-arrow-w";
                 navBar.moveLeftButton.appendChild(mlIconSpan);
                 
                 var onMoveLeft = function(event) {
@@ -2383,7 +2383,7 @@ links.Timeline.prototype.repaintNavigation = function () {
                 navBar.moveRightButton.className = "timeline-navigation-move-right";
                 navBar.moveRightButton.title = this.options.MOVE_RIGHT;
                 var mrIconSpan = document.createElement("SPAN");
-                mrIconSpan.className = "ui-icon ui-icon-circle-arrow-e";
+                //mrIconSpan.className = "ui-icon ui-icon-circle-arrow-e";
                 navBar.moveRightButton.appendChild(mrIconSpan);
                 
                 var onMoveRight = function(event) {
