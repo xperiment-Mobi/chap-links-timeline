@@ -71,6 +71,7 @@
 
                 //set fixed time which cannot be moved left
                 min: new Date(2014,7,13,0,0,0),
+                max: new Date(2014,7,13,0,5,0),
                 
                 //default width of the chart ( height is auto )
                 width:  "800px",
@@ -93,8 +94,8 @@
                 //the width of group label column ( optional )
                 groupsWidth : "100px",
 
-                //if allow items move across groups
-                groupsChangeable : true,
+                //prevent moving items across groups
+                groupsChangeable : false,
 
                 //set groups on left or right
                 groupsOnRight: false, // or left
@@ -111,6 +112,7 @@
                 groupText: groupText, //pass the group name text
 				scale:2,
 				step:5,
+				dragStep:150,
 				zoomMax:50000,
                 sortableGroup : true
             };

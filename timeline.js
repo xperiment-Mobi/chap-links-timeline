@@ -102,6 +102,8 @@ if (!Array.prototype.forEach) {
     }
 }
 
+// create self pbject of timeline
+var me;
 
 /**
  * @constructor links.Timeline
@@ -259,7 +261,7 @@ links.Timeline = function(container) {
     this.render();
 
     // fire the ready event
-    var me = this;
+    me = this;
     setTimeout(function () {
         me.trigger('ready');
     }, 0);
@@ -300,11 +302,10 @@ links.Timeline.prototype.draw = function(data, options, isJSON) {
     var c = this.options.groupText;
     if (c)
     {
-        if(data) {
-            for (var i = 0, r; r = data[i]; i++) {
-                //convert time string to time object
-                data[i].group = c[data[i].group] || data[i].group;
-            }
+        for(var i=0,r; r = data[i]; i++)
+        {
+            //convert time string to time object
+            data[i].group = c[data[i].group] || data[i].group;
         }
     }
     
@@ -405,35 +406,61 @@ links.Timeline.prototype.formatJsonData = function(options, data) {
 		return data;
 	this.setOptions(options);
 	for (var i = 0; i < data.length; i++) {
-		data[i].start = this.dateToString(options.min.valueOf() + data[i].start * 1000);
-		data[i].end = this.dateToString(options.min.valueOf() + data[i].end * 1000);
+		data[i].start = dateToString(options.min.valueOf() + data[i].start * 1000);
+		data[i].end = dateToString(options.min.valueOf() + data[i].end * 1000);
 	}
 	
 	return data;
-}
-
-links.Timeline.prototype.dateToString = function(t) {
-    if (typeof t == 'number') t = new Date(t);
-    return 'Date(' + t.getFullYear() + ', ' + (t.getMonth() + 1) + ', ' + t.getDate() + ', ' + t.getHours() + ', ' + t.getMinutes() + ', ' + t.getSeconds() + ', ' + t.getMilliseconds() + ')';
-}
+};
 
 /**
  * Get Date string from second
  * @param {Second} t input time in second
  */
 links.Timeline.prototype.getDateFromSecond = function(t) {
-	if (typeof t == 'number'){
-        t = new Date(this.options.min.valueOf() + t * 1000);
-    }
-	return t;
-}
+	if (typeof t == 'number') t = new Date(timeline.options.min.valueOf() + t * 1000);
+	return 'Date('+t.getFullYear()+', '+(t.getMonth()+1)+', '+t.getDate()+', '+t.getHours()+', '+t.getMinutes()+', '+t.getSeconds()+', '+t.getMilliseconds()+')';
+};
 
 /**
  * Get second from date value
  */
 links.Timeline.prototype.getSecondFromDate = function(date) {
 	return (date.valueOf() - this.options.min.valueOf()) / 1000;
-}
+};
+
+/**
+ * Get second from date value
+ */
+links.Timeline.prototype.switchBarType = function(barEl) {
+
+	for (var i = 0; i < this.items.length; i++)
+	{
+		if (this.items[i].dom == barEl)
+		{
+			var data = this.getData();
+			
+			// change bar from normal to forever
+			if (data[i].barType == undefined || data[i].barType =='normal') {
+				data[i].timeLength = (data[i].end.valueOf() - data[i].start.valueOf()) / 1000;
+				data[i].end = this.options.max;
+				data[i].barType = 'forever';
+			} else { // change bar from forever to normal
+				if (data[i].timeLength == undefined) {
+					var halfMaxTime = this.getSecondFromDate(this.options.max / 2);
+					if (this.getSecondFromDate(data[i].start) < halfMaxTime)
+						data[i].end = links.Timeline.parseJSONDate(this.getDateFromSecond(halfMaxTime));				
+				} else if (this.getSecondFromDate(data[i].start) + data[i].timeLength < this.getSecondFromDate(this.options.max))
+					data[i].end = links.Timeline.parseJSONDate(this.getDateFromSecond(this.getSecondFromDate(data[i].start) + data[i].timeLength));
+				data[i].barType = 'normal';
+			}
+			
+			// update data
+			this.setData(data);
+			break;
+		}
+	}
+};
 
 
 /**
@@ -2822,6 +2849,10 @@ links.Timeline.prototype.onMouseMove = function (event) {
         size = this.size,
         dom = this.dom,
         options = this.options;
+		
+	var bar = this.getSelectedElement();
+	if (bar.length > 0)
+		bar = bar[0];
 
     // calculate change in mouse position
     var mouseX = links.Timeline.getPageX(event);
@@ -2851,24 +2882,21 @@ links.Timeline.prototype.onMouseMove = function (event) {
         // fire a timechange event
         this.trigger('timechange');
     }
-    else if (params.editItem) {
+    else if (params.editItem) {		
         var item = this.items[params.itemIndex],
+			itemData = this.getData()[params.itemIndex],
             left,
-            right;
+            right;			
 
-        if (params.itemDragLeft) {
+        if (params.itemDragLeft) {		
             // move the start of the item
             left = params.itemLeft + diffX;
-			console.log("Left:"+left);
             right = params.itemRight;
 
-			console.log("Start1:"+item.start);
             item.start = this.screenToTime(left);
             if (options.snapEvents) {
                 this.step.snap(item.start);
-				console.log("Start2:"+item.start);
                 left = this.timeToScreen(item.start);
-			console.log("Left2:"+left);
             }
 
             if (left > right) {
@@ -2877,20 +2905,22 @@ links.Timeline.prototype.onMouseMove = function (event) {
             }
         }
         else if (params.itemDragRight) {
-            // move the end of the item
-            left = params.itemLeft;
-            right = params.itemRight + diffX;
+			if (itemData.barType == undefined || itemData.barType =='normal') { // if bar type is normal then allows user to drag
+				// move the end of the item
+				left = params.itemLeft;
+				right = params.itemRight + diffX;
 
-            item.end = this.screenToTime(right);
-            if (options.snapEvents) {
-                this.step.snap(item.end);
-                right = this.timeToScreen(item.end);
-            }
+				item.end = this.screenToTime(right);
+				if (options.snapEvents) {
+					this.step.snap(item.end);
+					right = this.timeToScreen(item.end);
+				}
 
-            if (right < left) {
-                right = left;
-                item.end = this.screenToTime(right);
-            }
+				if (right < left) {
+					right = left;
+					item.end = this.screenToTime(right);
+				}
+			}
         }
         else {
             // move the item
@@ -2902,11 +2932,17 @@ links.Timeline.prototype.onMouseMove = function (event) {
             }
 
             if (item.end) {
-                right = left + (params.itemRight - params.itemLeft);
-                item.end = this.screenToTime(right);
+				if (itemData.barType == undefined || itemData.barType =='normal') { // if bar type is normal then update end value
+					right = left + (params.itemRight - params.itemLeft);
+					item.end = this.screenToTime(right);
+				}
             }
         }
 
+		// update start and end time when bar is being moved
+		bar.querySelectorAll('.start-time')[0].innerHTML  = this.getSecondFromDate(item.start) * 1000 + 'ms';
+		bar.querySelectorAll('.end-time')[0].innerHTML  = this.getSecondFromDate(item.end) * 1000 + 'ms';
+		
         item.setPosition(left, right);
 
         var dragging = params.itemDragLeft || params.itemDragRight;
@@ -4168,6 +4204,7 @@ links.Timeline.ItemRange.prototype.createDOM = function () {
     var divContent = document.createElement("DIV");
     divContent.className = "timeline-event-content";
     divBox.appendChild(divContent);
+
     this.dom = divBox;
     this.updateDOM();
 
@@ -4224,12 +4261,18 @@ links.Timeline.ItemRange.prototype.updateDOM = function () {
         // update contents
         divBox.firstChild.innerHTML = '<div class="start-time"></div><div class="event-content">'+this.content+'</div><div class="end-time"></div>';
 
-		// add double click event listenner to start time element
-		divBox.firstChild.firstChild.addEventListener("dblclick", function(){
+		// add double click event listener to bar element
+		divBox.addEventListener("dblclick", function(){
+			me.switchBarType(this);
+		});
+		
+		// add double click event listener to start time element
+		divBox.querySelectorAll('.start-time')[0].addEventListener("dblclick", function(e){
+			e.stopPropagation();
 			// get start time and end time
-			var currentVal = this.innerText.replace('ms','');
-			var endVal = this.parentElement.lastChild.innerText.replace('ms','');
-			// show promt box
+			var currentVal = this.innerHTML.replace('ms','');
+			var endVal = this.parentElement.querySelectorAll('.end-time')[0].innerHTML.replace('ms','');
+			// show prompt box
 			var v = prompt("Please enter start time", currentVal);
 			
 			if (v == null)
@@ -4243,13 +4286,13 @@ links.Timeline.ItemRange.prototype.updateDOM = function () {
 			{
 				v = parseFloat(v);
 				// update data of timeline
-				for (var i=0;i<timeline.items.length;i++)
+				for (var i=0; i < me.items.length; i++)
 				{
-					if(timeline.items[i].dom==this.parentElement.parentElement)
+					if (me.items[i].dom == this.parentElement.parentElement)
 					{
-						var data=timeline.getData();
-						data[i].start=new Date(timeline.options.min.valueOf() + v);
-						timeline.setData(data);
+						var data = me.getData();
+						data[i].start = new Date(me.options.min.valueOf() + v);
+						me.setData(data);
 						break;
 					}
 				}
@@ -4257,41 +4300,60 @@ links.Timeline.ItemRange.prototype.updateDOM = function () {
 				alert('Invalid value!');
 		});
 		
-		// add double click event listenner to end time
-		divBox.firstChild.lastChild.addEventListener("dblclick", function(){
-			// get current end time and start time
-			var currentVal=this.innerText.replace('ms','');
-			var startVal=this.parentElement.firstChild.innerText.replace('ms','');
-			// show promt box
-			var v = prompt("Please enter end time", currentVal);
+		// add double click event listener to end time
+		divBox.querySelectorAll('.end-time')[0].addEventListener("dblclick", function(e){
+			e.stopPropagation();
 			
-			if (v == null)
-				return;
-
-			// trim the input string
-			v = v.trim();
-				
-			// check if input value is valid
-			if (!isNaN(parseFloat(v)) && isFinite(v) && parseFloat(v) > parseFloat(startVal))
+			var data = me.getData();
+			var itemIndex = -1;
+			for (var i=0; i < me.items.length; i++)
 			{
-				v = parseFloat(v);
-				// update data of timeline
-				for (var i=0;i<timeline.items.length;i++)
+				if (me.items[i].dom == this.parentElement.parentElement)
 				{
-					if(timeline.items[i].dom==this.parentElement.parentElement)
-					{
-						var data=timeline.getData();
-						data[i].end=new Date(timeline.options.min.valueOf() + v);
-						timeline.setData(data);
-						break;
-					}
+					itemIndex = i;
+					break;
 				}
-			} else // alert if value is invalid
-				alert('Invalid value!');
+			}
+			
+			if (itemIndex != -1 && (data[itemIndex].barType == undefined || data[itemIndex].barType == 'normal')) {			
+				// get current end time and start time
+				var currentVal=this.innerHTML.replace('ms','');
+				var startVal=this.parentElement.querySelectorAll('.start-time')[0].innerHTML.replace('ms','');
+				// show prompt box
+				var v = prompt("Please enter end time", currentVal);
+				
+				if (v == null)
+					return;
+
+				// trim the input string
+				v = v.trim();
+					
+				// check if input value is valid
+				if (!isNaN(parseFloat(v)) && isFinite(v) && parseFloat(v) > parseFloat(startVal))
+				{
+					v = parseFloat(v);
+					// update data of timeline
+					data[itemIndex].end = new Date(me.options.min.valueOf() + v);
+					me.setData(data);
+				} else // alert if value is invalid
+					alert('Invalid value!');
+			}
 		});
+		
 		
         // update class
         divBox.className = "timeline-event timeline-event-range ui-widget ui-state-default";
+		
+		// add 'timeline-forever' to class if this bar is forever
+		for (var i = 0; i < me.items.length; i++)
+		{
+			if (me.items[i].dom == divBox)
+			{				
+				var data = me.getData();
+				if (data[i].barType != undefined && data[i].barType == 'forever')
+					links.Timeline.addClassName(divBox, 'timeline-forever');
+			}
+		}
 
         if (this.isCluster) {
             links.Timeline.addClassName(divBox, 'timeline-event-cluster ui-widget-header');
@@ -4680,20 +4742,22 @@ links.Timeline.prototype.getItem = function (index) {
  */
 links.Timeline.prototype.addItem = function (itemData, preventRender) {
 
-    if(isNaN(itemData.end))itemData.end=22; //temp bodge
-
-
-
-    itemData.start = this.getDateFromSecond(itemData.start);
-
-    itemData.end = this.getDateFromSecond(itemData.end)
-
-    if (this.options.groupText.hasOwnProperty(itemData.group)) {
-        itemData.group = this.options.groupText[ itemData.group ];
+    if (this.options.groupText)
+    {
+        var cache = {};
+        for(var key in this.options.groupText)
+        {
+            cache[ this.options.groupText[key] ] = key;
+        }
+        itemData.group = cache[ itemData.group ];
     }
-    itemData.group+=" "+itemData.info;
 
-    this.addItems([itemData], preventRender);
+    var itemsData = [
+        itemData
+    ];
+
+
+    this.addItems(itemsData, preventRender);
 };
 
 /**
@@ -4990,14 +5054,12 @@ links.Timeline.prototype.getSelection = function() {
     return sel;
 };
 
-
-links.Timeline.prototype.getSelectedItem = function() {
-    var selected = this.items[this.selection.index];
-    return {
-        "content": selected.content,
-        "start":this.getSecondFromDate(selected.start),
-        "end":this.getSecondFromDate(selected.end)
-    }
+/**
+ * Get selected element
+ * @return {Object} el  Selected element
+ */
+links.Timeline.prototype.getSelectedElement = function() {
+    return document.querySelectorAll('div.timeline-event-selected');
 };
 
 
@@ -5361,7 +5423,7 @@ links.Timeline.prototype.collision = function(item1, item2, margin) {
  * fire an event
  * @param {String} event   The name of an event, for example "rangechange" or "edit"
  */
-links.Timeline.prototype.trigger = function (event, extra) {
+links.Timeline.prototype.trigger = function (event) {
     // built up properties
     var properties = null;
     switch (event) {
@@ -5377,11 +5439,6 @@ links.Timeline.prototype.trigger = function (event, extra) {
         case 'timechanged':
             properties = {
                 'time': new Date(this.customTime.valueOf())
-            };
-            break;
-        default:
-            properties = {
-                'extra': extra
             };
             break;
     }
@@ -6216,10 +6273,8 @@ links.Timeline.StepDate.prototype.snap = function(date) {
             default:
                 date.setMilliseconds(Math.round(date.getMilliseconds() / 500) * 500); break;
         } */
-		//console.log(links.Timeline.,222)
-        //date.setMilliseconds(Math.round(date.getMilliseconds() / links.Timeline.dragStep) * links.Timeline.dragStep);
-        var step = this.step > 5 ? this.step / 2 : 1;
-        date.setMilliseconds(Math.round(date.getMilliseconds() / step) * step);
+		
+        date.setMilliseconds(Math.round(date.getMilliseconds() / timeline.options.dragStep) * timeline.options.dragStep);
     }
     else if (this.scale == links.Timeline.StepDate.SCALE.MILLISECOND) {
         var step = this.step > 5 ? this.step / 2 : 1;
@@ -6939,49 +6994,20 @@ links.Timeline.prototype.makeGroupSortable = function(dom)
 
 links.Timeline.prototype.reorderGroups = function()
 {
-    function genOrder(ord){
-
-        var newOrd = [];
-        for(var i=0;i<ord.length;i++)
-        {
-            $str1 = $('<div>',{html:ord[i].content});
-            newOrd.push($str1.find('#peg').text());
-        }
-        return newOrd;
-    }
-
-
     var labels = this.dom.groups.labels;
-
-
-    var origOrder = genOrder(this.groups);
-
-
+    var groups = this.groups;
 
     this._labelsTop = {};
     this.hasSortedGroup = true;
-
     for(var i=0;i<labels.length;i++)
     {
         this._labelsTop[ labels[i].title ] = parseInt(labels[i].style.top);
     }
 
     this.redraw();
-
     for(var i=0;i<this.groups.length;i++)
     {
         this.dom.groups.labels[i].title = this.groups[i].content;
-    }
-
-    var newOrder = genOrder(this.groups);
-
-    if(origOrder.length!=newOrder.length)return;
-
-    for(i=0;i<origOrder.length;i++){
-        if(origOrder[i]!=newOrder[i]){
-            this.trigger("reOrdered",newOrder);
-            return;
-        }
     }
 };
 
