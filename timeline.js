@@ -6280,7 +6280,7 @@ links.Timeline.StepDate.prototype.snap = function(date) {
                 date.setMilliseconds(Math.round(date.getMilliseconds() / 500) * 500); break;
         } */
 		
-        date.setMilliseconds(Math.round(date.getMilliseconds() / timeline.options.dragStep) * timeline.options.dragStep);
+        date.setMilliseconds(Math.round(date.getMilliseconds() / me.options.dragStep) * me.options.dragStep);
     }
     else if (this.scale == links.Timeline.StepDate.SCALE.MILLISECOND) {
         var step = this.step > 5 ? this.step / 2 : 1;

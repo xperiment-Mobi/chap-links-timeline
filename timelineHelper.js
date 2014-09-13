@@ -197,7 +197,7 @@ var timelineHelper = ( function()
     }
 
     function ItemsUpdated(myOptions) {
-        var selected = timeline.getSelectedItem();
+        var selected = timeline.items[timeline.selection.index];
         if(api.toAS3)    api.toAS3("timeChange",{
             "peg":selected.content,
             "start":selected.start*1000,
