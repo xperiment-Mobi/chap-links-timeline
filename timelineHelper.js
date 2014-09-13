@@ -11,8 +11,15 @@ var timelineHelper = ( function()
             {
                 "start": 10,
                 "end": 20,
-                "content": "",
+                "content": "a",
                 "group": "group4",
+                "type": "range"
+            },
+			 {
+                "start": 10,
+                "end": 20,
+                "content": "b",
+                "group": "group1",
                 "type": "range"
             }
         ];
@@ -157,6 +164,8 @@ var timelineHelper = ( function()
                 "content":stim.info,
                 "type": "range"
             });
+			
+
     /*
             {
             "start": 80,
