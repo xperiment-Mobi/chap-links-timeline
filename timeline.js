@@ -300,7 +300,7 @@ links.Timeline.prototype.draw = function(data, options, isJSON) {
 
 
     var c = this.options.groupText;
-    if (c)
+    if (c && data)
     {
         for(var i=0,r; r = data[i]; i++)
         {
@@ -398,7 +398,7 @@ links.Timeline.prototype.setDragStep = function(dragStep) {
 };
 
 /**
- * Format start and end of data from second to Date
+ * Format start and e?nd of data from second to Date
  * @param {Date} data  Input data
  */
 links.Timeline.prototype.formatJsonData = function(options, data) {
@@ -406,20 +406,26 @@ links.Timeline.prototype.formatJsonData = function(options, data) {
 		return data;
 	this.setOptions(options);
 	for (var i = 0; i < data.length; i++) {
-		data[i].start = dateToString(options.min.valueOf() + data[i].start * 1000);
-		data[i].end = dateToString(options.min.valueOf() + data[i].end * 1000);
+		data[i].start = this.dateToString(options.min.valueOf() + data[i].start * 1000);
+		data[i].end = this.dateToString(options.min.valueOf() + data[i].end * 1000);
 	}
 	
 	return data;
 };
+
+links.Timeline.prototype.dateToString = function(t) {
+    if (typeof t == 'number') t = new Date(t);
+    return 'Date(' + t.getFullYear() + ', ' + (t.getMonth() + 1) + ', ' + t.getDate() + ', ' + t.getHours() + ', ' + t.getMinutes() + ', ' + t.getSeconds() + ', ' + t.getMilliseconds() + ')';
+};
+
 
 /**
  * Get Date string from second
  * @param {Second} t input time in second
  */
 links.Timeline.prototype.getDateFromSecond = function(t) {
-	if (typeof t == 'number') t = new Date(timeline.options.min.valueOf() + t * 1000);
-	return 'Date('+t.getFullYear()+', '+(t.getMonth()+1)+', '+t.getDate()+', '+t.getHours()+', '+t.getMinutes()+', '+t.getSeconds()+', '+t.getMilliseconds()+')';
+	if (typeof t == 'number') t = new Date(this.options.min.valueOf() + t * 1000);
+	return t;
 };
 
 /**
@@ -4742,15 +4748,15 @@ links.Timeline.prototype.getItem = function (index) {
  */
 links.Timeline.prototype.addItem = function (itemData, preventRender) {
 
-    if (this.options.groupText)
-    {
-        var cache = {};
-        for(var key in this.options.groupText)
-        {
-            cache[ this.options.groupText[key] ] = key;
-        }
-        itemData.group = cache[ itemData.group ];
-    }
+   // if (this.options.groupText)
+   // {
+    //    var cache = {};
+    //    for(var key in this.options.groupText)
+    //    {
+    //        cache[ this.options.groupText[key] ] = key;
+    //    }
+    //    itemData.group = cache[ itemData.group ];
+   // }
 
     var itemsData = [
         itemData
