@@ -4786,6 +4786,9 @@ links.Timeline.prototype.addItems = function (itemsData, preventRender) {
     // append the items
     itemsData.forEach(function (itemData) {
         var index = items.length;
+		// re-set end time if bar is forever
+		if (itemData.barType != undefined && itemData.barType == 'forever')
+			itemData.end = timeline.options.max;
         items.push(timeline.createItem(itemData));
         timeline.updateData(index, itemData);
 
@@ -4814,6 +4817,11 @@ links.Timeline.prototype.addItems = function (itemsData, preventRender) {
  */
 links.Timeline.prototype.createItem = function(itemData) {
     var type = itemData.type || (itemData.end ? 'range' : this.options.style);
+	
+	// re-set end time if bar is forever
+	if (itemData.barType != undefined && itemData.barType == 'forever')
+		itemData.end = this.options.max;
+		
     var data = {
         start: itemData.start,
         end: itemData.end,

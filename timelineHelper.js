@@ -20,7 +20,8 @@ var timelineHelper = ( function()
                 "end": 20,
                 "content": "b",
                 "group": "group1",
-                "type": "range"
+                "type": "range",
+				"barType": "forever"
             }
         ];
 
@@ -50,6 +51,7 @@ var timelineHelper = ( function()
 
             //set fixed time which cannot be moved left
             min: new Date(2014, 7, 13, 0, 0, 0),
+            max: new Date(2014, 7, 13, 0, 0, 40),
 
             //default width of the chart ( height is auto )
             width: "100%",
