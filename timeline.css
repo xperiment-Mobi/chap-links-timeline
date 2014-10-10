@@ -225,4 +225,23 @@ div.frame-move-width
 	cursor:col-resize;
 	top:0;
 }
-z
+.timeline-cmd-button 
+{
+	width:16px;
+	height:16px;
+	border:0;
+	padding:2px 5px 0 5px;
+	cursor:pointer;
+}
+.timeline-triangle 
+{
+	position:absolute;
+	width:16px;
+	height:16px;
+	margin-left:-8px;
+	left:0;
+	top:7px;
+	cursor:w-resize;
+	z-index:9999;
+	opacity:0.5
+}
