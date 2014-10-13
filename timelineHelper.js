@@ -93,20 +93,7 @@ var timelineHelper = ( function()
             scale: 2,
             step: 5,
             zoomMax: 50000,
-            sortableGroup: true,
-			
-			playEvent: function () {
-				console.log('play button clicked');
-			},
-			pauseEvent: function () {
-				console.log('pause button clicked');
-			},
-			beginningEvent: function () {
-				console.log('beginning button clicked');
-			},
-			triangleEvent: function (time) {
-				console.log('current time: ' + time);
-			},
+            sortableGroup: true
         };
 
         // Instantiate our timeline object.

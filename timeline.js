@@ -225,12 +225,7 @@ links.Timeline = function(container) {
         'MOVE_LEFT': "Move left",
         'MOVE_RIGHT': "Move right",
         'NEW': "",
-        'CREATE_NEW_EVENT': "Create new event",
-		
-		"playEvent": undefined,
-		"pauseEvent": undefined,
-		"beginningEvent": undefined,
-		"triangleEvent": undefined
+        'CREATE_NEW_EVENT': "Create new event"
     };
 
     this.clientTimeOffset = 0;    // difference between client time and the time
@@ -660,6 +655,7 @@ links.Timeline.prototype.updateData = function  (index, values) {
     else {
         throw "Cannot update data, unknown type of data";
     }
+
 };
 
 /**
@@ -1209,27 +1205,6 @@ links.Timeline.prototype.repaintAxis = function() {
 
         step.next();
     }
-	
-	// add triangle button
-	if (axis.frame.querySelectorAll('.timeline-triangle').length == 0) {	
-        var triangle = document.createElement("img");
-		triangle.src = '../img/triangle.png'
-        triangle.className = "timeline-triangle";
-
-        axis.frame.appendChild(triangle);
-		
-		if (!dom.items) {
-			dom.items = {};
-		}
-		dom.items.triangle = triangle;
-	}
-	
-	if (!this.firstDraw && options.min != undefined && axis.frame.querySelectorAll('.timeline-triangle').length == 1) {
-		this.recalcConversion();
-		if (this.currentPos == undefined)
-			this.currentPos = options.min;
-		axis.frame.querySelectorAll('.timeline-triangle')[0].style.left = this.timeToScreen(this.currentPos);
-	}
 
     // create a major label on the left when needed
     if (options.showMajorLabels) {
@@ -2065,41 +2040,12 @@ links.Timeline.prototype.repaintGroups = function() {
         background.style.left = "0px";
         background.style.width = "100%";
         background.style.border = "none";
-        background.style.textAlign = "center";
 
         frame.appendChild(background);
         dom.groups.background = background;
     }
     dom.groups.background.style.top = size.axis.top + 'px';
     dom.groups.background.style.height = size.axis.height + 'px';
-		
-	// additional buttons		
-	if (dom.items != undefined && options.min != undefined && dom.items.buttonPlay == undefined) {
-		var buttonPlay = document.createElement("img");
-		buttonPlay.src = '../img/play.png';
-		buttonPlay.className = "timeline-play timeline-cmd-button";
-		if (this.options.playEvent instanceof Function)		
-			links.Timeline.addEventListener(buttonPlay, "click", this.options.playEvent);
-		
-		var buttonPause = document.createElement("img");
-		buttonPause.src = '../img/pause.png';
-		buttonPause.className = "timeline-pause timeline-cmd-button";
-		if (this.options.pauseEvent instanceof Function)		
-			links.Timeline.addEventListener(buttonPause, "click", this.options.pauseEvent);
-		
-		var buttonBeginning = document.createElement("img");
-		buttonBeginning.src = '../img/redo.png';
-		buttonBeginning.className = "timeline-redo timeline-cmd-button";
-		if (this.options.beginningEvent instanceof Function)		
-			links.Timeline.addEventListener(buttonBeginning, "click", this.options.beginningEvent);
-		
-		dom.groups.background.appendChild(buttonPlay);
-		dom.groups.background.appendChild(buttonPause);
-		dom.groups.background.appendChild(buttonBeginning);
-		dom.items.buttonPlay = buttonPlay;
-		dom.items.buttonPause = buttonPause;
-		dom.items.buttonBeginning = buttonBeginning;
-	}
 
     if (!dom.groups.line) {
         // create the axis grid line
@@ -2825,10 +2771,8 @@ links.Timeline.prototype.onMouseDown = function(event) {
     params.target = links.Timeline.getTarget(event);
     var dragLeft = (dom.items && dom.items.dragLeft) ? dom.items.dragLeft : undefined;
     var dragRight = (dom.items && dom.items.dragRight) ? dom.items.dragRight : undefined;
-    var triangle = (dom.items && dom.items.triangle) ? dom.items.triangle : undefined;
     params.itemDragLeft = (params.target === dragLeft);
     params.itemDragRight = (params.target === dragRight);
-    params.itemTriangle = (params.target === triangle);
 
     if (params.itemDragLeft || params.itemDragRight) {
         params.itemIndex = this.selection ? this.selection.index : undefined;
@@ -2911,8 +2855,9 @@ links.Timeline.prototype.onMouseMove = function (event) {
     var params = this.eventParams,
         size = this.size,
         dom = this.dom,
-        options = this.options;
-		
+        options = this.options,
+        itemData = this.getData()[params.itemIndex];
+
 	var bar = this.getSelectedElement();
 	if (bar.length > 0)
 		bar = bar[0];
@@ -2936,23 +2881,7 @@ links.Timeline.prototype.onMouseMove = function (event) {
         params.moved = true;
     }
 
-    if (params.itemTriangle) {
-		if (this.oldPos == undefined)
-			this.oldPos =options.min;
-		left = this.timeToScreen(this.oldPos) + diffX;
-		this.currentPos = this.screenToTime(left);
-		
-		// trigger triangle event
-		var triangleTimeVal = this.getSecondFromDate(this.currentPos);
-		if (this.options.triangleEvent instanceof Function) {
-			options.triangleEvent(triangleTimeVal);
-		}
-
-        this.repaintCurrentTime();
-        this.repaintCustomTime();
-        this.repaintAxis();
-	}
-    else if (params.customTime) {
+    if (params.customTime) {
         var x = this.timeToScreen(params.customTime);
         var xnew = x + diffX;
         this.customTime = this.screenToTime(xnew);
@@ -2963,7 +2892,6 @@ links.Timeline.prototype.onMouseMove = function (event) {
     }
     else if (params.editItem) {		
         var item = this.items[params.itemIndex],
-			itemData = this.getData()[params.itemIndex],
             left,
             right;			
 
@@ -3020,7 +2948,10 @@ links.Timeline.prototype.onMouseMove = function (event) {
 
 		// update start and end time when bar is being moved
 		bar.querySelectorAll('.start-time')[0].innerHTML  = this.getSecondFromDate(item.start) * 1000 + 'ms';
-		bar.querySelectorAll('.end-time')[0].innerHTML  = this.getSecondFromDate(item.end) * 1000 + 'ms';
+		if(itemData.hasOwnProperty('barType') && itemData.barType=='forever'){
+             right = params.itemRight;
+        }
+        else bar.querySelectorAll('.end-time')[0].innerHTML  = this.getSecondFromDate(item.end) * 1000 + 'ms';
 		
         item.setPosition(left, right);
 
@@ -3112,10 +3043,6 @@ links.Timeline.prototype.onMouseUp = function (event) {
     }
     //links.Timeline.preventDefault(event);
 
-	if (params.itemTriangle) {
-		this.oldPos = this.currentPos;
-	}
-	
     if (params.customTime) {
         // fire a timechanged event
         this.trigger('timechanged');
@@ -4835,12 +4762,13 @@ links.Timeline.prototype.addItem = function (itemData, preventRender) {
     //    itemData.group = cache[ itemData.group ];
    // }
 
-    var itemsData = [
-        itemData
-    ];
 
+    if (this.options.groupText.hasOwnProperty(itemData.group)) {
+        itemData.group = this.options.groupText[ itemData.group ];
+    }
+    itemData.group+=" "+itemData.info;
 
-    this.addItems(itemsData, preventRender);
+    this.addItems([itemData], preventRender);
 };
 
 /**
@@ -4908,6 +4836,7 @@ links.Timeline.prototype.createItem = function(itemData) {
         group: this.getGroup(itemData.group),
         type: type
     };
+
     // TODO: optimize this, when creating an item, all data is copied twice...
 
     // TODO: is initialTop needed?
@@ -5055,8 +4984,7 @@ links.Timeline.prototype.getGroup = function (groupName) {
 links.Timeline.prototype.getGroupName = function (groupObj) {
     // var c = this.options.groupText;
     // return (c && c[groupObj.content]) ? c[groupObj.content] : groupObj.content;
-    
-    
+
     return groupObj ? groupObj.content : undefined;
 };
 
@@ -5514,7 +5442,7 @@ links.Timeline.prototype.collision = function(item1, item2, margin) {
  * fire an event
  * @param {String} event   The name of an event, for example "rangechange" or "edit"
  */
-links.Timeline.prototype.trigger = function (event) {
+links.Timeline.prototype.trigger = function (event, extra) {
     // built up properties
     var properties = null;
     switch (event) {
@@ -5531,6 +5459,17 @@ links.Timeline.prototype.trigger = function (event) {
             properties = {
                 'time': new Date(this.customTime.valueOf())
             };
+            break;
+        case 'uiPressed':
+            properties = {
+                button:extra
+            }
+        default:
+            if (extra) {
+                properties = {
+                    'extra': extra
+                };
+            }
             break;
     }
 
@@ -6416,8 +6355,7 @@ links.Timeline.StepDate.prototype.getLabelMinor = function(options, date) {
 
     switch (this.scale) {
         case links.Timeline.StepDate.SCALE.MILLISECOND:  return String(date.getMilliseconds())+'ms';
-        case links.Timeline.StepDate.SCALE.SECOND:
-			return (date.valueOf() - options.min.valueOf())+'ms ';
+        case links.Timeline.StepDate.SCALE.SECOND:       return (date.valueOf() - options.min.valueOf())+'ms ';
         case links.Timeline.StepDate.SCALE.MINUTE:
             return this.addZeros(date.getHours(), 2) + ":" + this.addZeros(date.getMinutes(), 2);
         case links.Timeline.StepDate.SCALE.HOUR:
@@ -7047,6 +6985,7 @@ links.Timeline.prototype.makeResizable = function(dom,handler)
     });
 };
 
+
 links.Timeline.prototype.makeGroupSortable = function(dom)
 {
     dom.style.cursor = 'move';
@@ -7079,29 +7018,60 @@ links.Timeline.prototype.makeGroupSortable = function(dom)
         };
         links.Timeline.addEventListener(document,'mousemove',mousemove);
         links.Timeline.addEventListener(document,'mouseup',mouseup);
-        
+
 
     });
 };
 
 links.Timeline.prototype.reorderGroups = function()
 {
+    function genOrder(ord){
+
+        var newOrd = [];
+        var $str1
+        for(var i=0;i<ord.length;i++)
+        {
+            $str1 = $('<div>',{html:ord[i].content});
+            newOrd.push($str1.find('#peg').text());
+        }
+        return newOrd;
+    }
+
+
     var labels = this.dom.groups.labels;
-    var groups = this.groups;
+
+
+    var origOrder = genOrder(this.groups);
+
+
 
     this._labelsTop = {};
     this.hasSortedGroup = true;
+
     for(var i=0;i<labels.length;i++)
     {
         this._labelsTop[ labels[i].title ] = parseInt(labels[i].style.top);
     }
 
     this.redraw();
+
     for(var i=0;i<this.groups.length;i++)
     {
         this.dom.groups.labels[i].title = this.groups[i].content;
     }
+
+    var newOrder = genOrder(this.groups);
+
+    if(origOrder.length!=newOrder.length)return;
+
+    for(i=0;i<origOrder.length;i++){
+        if(origOrder[i]!=newOrder[i]){
+            this.trigger("reOrdered",newOrder);
+            return;
+        }
+    }
 };
+
 
 
 

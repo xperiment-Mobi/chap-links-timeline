@@ -37,9 +37,15 @@ div.timeline-event {
     display: inline-block;
 }
 
-div.timeline-forever {
+.ui-widget-content  div.timeline-forever {
 	border-color: #389E65;
-	background-color: #62DA97;
+    background: #62DA97 url('img/forever.png');
+
+}
+
+.ui-widget-content  div.timeline-forever.ui-state-active {
+	background: #389E65 url('img/forever.png');;
+	border-color: #389E65  !important;
 }
 
 div.timeline-event-selected {
@@ -194,21 +200,30 @@ div.item-line
     border-left-style: solid;
     margin-left:-2px;
 }
+div.timeline-event-content *{
+	cursor: move;
+	position: relative;
+}
 div.timeline-event-content .start-time
 {
 	float:left;	
 	margin-right:5px;
-	z-index:2;
+	z-index:3;
+
 }
 div.timeline-event-content .event-content
 {
-	float:left;	
-	z-index:2;
+	z-index: 2;
+	position: absolute;
+	width: 100%;
+	text-align: center;
+	line-height: 14px;
 }
 div.timeline-event-content .end-time
 {
 	float:right;
 	margin-right:6px;
+	z-index:3;
 }
 div.timeline-event-content .start-time,div.timeline-event-content .end-time
 {
@@ -224,24 +239,4 @@ div.frame-move-width
 	z-index:2;
 	cursor:col-resize;
 	top:0;
-}
-.timeline-cmd-button 
-{
-	width:16px;
-	height:16px;
-	border:0;
-	padding:2px 5px 0 5px;
-	cursor:pointer;
-}
-.timeline-triangle 
-{
-	position:absolute;
-	width:16px;
-	height:16px;
-	margin-left:-8px;
-	left:0;
-	top:7px;
-	cursor:w-resize;
-	z-index:9999;
-	opacity:0.5
 }
