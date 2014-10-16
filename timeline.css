@@ -240,3 +240,31 @@ div.frame-move-width
 	cursor:col-resize;
 	top:0;
 }
+.timeline-cmd-button 
+{
+	width:16px;
+	height:16px;
+	border:0;
+	padding:2px 5px 0 5px;
+	cursor:pointer;
+}
+.timeline-triangle 
+{
+	position:absolute;
+	width:28px;
+	height:28px;
+	margin-left:-14px;
+	left:0;
+	top:-3px;
+	cursor:w-resize;
+	z-index:9999;
+	opacity:0.5
+}
+.mouse-triangle
+{
+	cursor: w-resize !important;
+}
+.mouse-dragging
+{
+	cursor: move !important;
+}
